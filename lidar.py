@@ -76,7 +76,7 @@ def main(arguments=None):
                                 afficher=not options.sans_fenetre)
         print(f"Lidar {options.modele.upper()} sur {options.port}.")
         if not options.sans_fenetre:
-            print("Quitter : Ctrl+C.")
+            print("Quitter : Q, ESC.")
         image = executer(capteur, projecteur, options.scans)
         if options.capture is not None:
             if image is None:
