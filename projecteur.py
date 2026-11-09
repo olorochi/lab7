@@ -37,7 +37,6 @@ class Projecteur:
 
     @staticmethod
     def est_dangereux(distance: float, angle: float) -> bool:
-        """Zone rouge : 0,10 < d < 0,50 m et ecart a l'avant <= 10 degres."""
         if not (math.isfinite(distance) and math.isfinite(angle)
                 and 0.10 < distance < 0.50):
             return False
