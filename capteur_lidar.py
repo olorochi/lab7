@@ -30,7 +30,7 @@ class Lidar:
             self._sdk = import_module("ydlidar")
         except ImportError as erreur:
             raise RuntimeError(
-                "SDK ydlidar introuvable. Veuillez installer YDLidar-SDK."
+                "SDK ydlidar introuvable."
             ) from erreur
 
         configuration = self.MODELES[self.modele]

@@ -18,9 +18,9 @@ class Projecteur:
                  echelle: float = 100.0, afficher: bool = True):
         if (not isinstance(largeur, int) or not isinstance(hauteur, int)
                 or largeur <= 0 or hauteur <= 0):
-            raise ValueError("Les dimensions doivent etre des entiers strictement positifs.")
+            raise ValueError("Les dimensions doivent etre des entiers positifs.")
         if not math.isfinite(echelle) or echelle <= 0:
-            raise ValueError("L'echelle doit etre finie et strictement positive.")
+            raise ValueError("L'echelle doit etre finie et positive.")
         self.largeur = largeur
         self.hauteur = hauteur
         self.echelle = echelle
@@ -32,8 +32,7 @@ class Projecteur:
     def coordonnees_image(self, distance: float, angle: float) -> Tuple[int, int]:
         x = -distance * math.sin(angle)
         y = distance * math.cos(angle)
-        return (round(self.centre[0] + x * self.echelle),
-                round(self.centre[1] + y * self.echelle))
+        return (round(self.centre[0] + x * self.echelle), round(self.centre[1] + y * self.echelle))
 
     @staticmethod
     def est_dangereux(distance: float, angle: float) -> bool:
