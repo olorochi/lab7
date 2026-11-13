@@ -5,9 +5,11 @@ import math
 from pathlib import Path
 import sys
 import time
+import os
 
 import cv2
 
+from camera import Camera
 from capteur_lidar import Lidar
 from projecteur import Projecteur
 
@@ -15,28 +17,18 @@ from projecteur import Projecteur
 PERIODE_SECONDES = 0.050
 
 
-def executer(capteur, projecteur, nombre_scans=None):
+def executer(camera, nombre_scans=None):
     derniere_image = None
     compteur = 0
-    try:
-        capteur.demarrer()
-        while capteur.est_actif():
-            debut = time.monotonic()
-            derniere_image = projecteur.projeter(capteur.obtenir_donnees())
-            compteur += 1
-            if projecteur.quitter_demande():
-                break
-            if nombre_scans is not None and compteur >= nombre_scans:
-                break
-            attente = PERIODE_SECONDES - (time.monotonic() - debut)
-            if attente > 0:
-                time.sleep(attente)
-    finally:
-        try:
-            capteur.arreter()
-        finally:
-            projecteur.fermer()
-    return derniere_image
+    camera.demarrer()
+    while compteur != nombre_scans:
+        debut = time.monotonic()
+        camera.save(f"image_rgb/{compteur}.png")
+        compteur += 1
+
+        attente = PERIODE_SECONDES - (time.monotonic() - debut)
+        if attente > 0:
+            time.sleep(attente)
 
 
 def entier_positif(texte):
@@ -55,28 +47,19 @@ def echelle_positive(texte):
 
 def main(arguments=None):
     analyseur = argparse.ArgumentParser(description=__doc__)
-    analyseur.add_argument("--port", default="/dev/ttyUSB0", help="Port serie du lidar.")
-    analyseur.add_argument("--modele", type=str.lower, choices=("x2", "x4"), default="x4")
-    analyseur.add_argument("--taille", type=entier_positif, default=800, help="Largeur et hauteur de l'image en pixels (800).")
-    analyseur.add_argument("--echelle", type=echelle_positive, default=100.0, help="Nombre de pixels par metre (100).")
-    analyseur.add_argument("--scans", type=entier_positif, help="Arreter apres ce nombre d'acquisitions.")
-    analyseur.add_argument("--capture", type=Path, help="Enregistrer la derniere carte (.png).")
+    analyseur.add_argument("--scans", type=entier_positif, default=200, help="Arreter apres ce nombre d'acquisitions.")
     options = analyseur.parse_args(arguments)
 
     try:
-        capteur = Lidar(options.port, options.modele)
-        projecteur = Projecteur(options.taille, options.taille, options.echelle,
-                                afficher=True)
-        print(f"Lidar {options.modele.upper()} sur {options.port}.")
-        print("Quitter : Q, ESC.")
-        image = executer(capteur, projecteur, options.scans)
-        if options.capture is not None:
-            if image is None:
-                raise RuntimeError("Aucune carte recue a enregistrer.")
-            options.capture.parent.mkdir(parents=True, exist_ok=True)
-            if not cv2.imwrite(str(options.capture), image):
-                raise OSError(f"Impossible d'enregistrer {options.capture}.")
-            print(f"Carte enregistree : {options.capture}")
+        camera = Camera(640, 480)
+
+        try: 
+            os.mkdir("image_rgb")
+        except FileExistsError:
+            pass
+
+        image = executer(camera, options.scans)
+
     except KeyboardInterrupt:
         print("\nAcquisition interrompue.")
     except (RuntimeError, OSError, ValueError, cv2.error) as erreur:
